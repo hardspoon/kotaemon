@@ -1,8 +1,6 @@
 # Lite version
 FROM python:3.10-slim AS lite
 
-Cache mounts MUST be in the format --mount=type=cache,id=<cache-id>
-
 # Common dependencies
 RUN apt-get update -qqy && \
     apt-get install -y --no-install-recommends \
@@ -41,13 +39,13 @@ COPY .env.example /app/.env
 
 # Install pip packages
 RUN --mount=type=ssh  \
-    --mount=type=cache,target=/root/.cache/pip  \
+    --mount=type=cache,id=pip_cache_lite,target=/root/.cache/pip  \
     pip install -e "libs/kotaemon" \
     && pip install -e "libs/ktem" \
     && pip install "pdfservices-sdk@git+https://github.com/niallcm/pdfservices-python-sdk.git@bump-and-unfreeze-requirements"
 
 RUN --mount=type=ssh  \
-    --mount=type=cache,target=/root/.cache/pip  \
+    --mount=type=cache,id=pip_cache_lite,target=/root/.cache/pip  \
     if [ "$TARGETARCH" = "amd64" ]; then pip install graphrag future; fi
 
 # Clean up
@@ -74,12 +72,12 @@ RUN apt-get update -qqy && \
 
 # Install torch and torchvision for unstructured
 RUN --mount=type=ssh  \
-    --mount=type=cache,target=/root/.cache/pip  \
+    --mount=type=cache,id=pip_cache_full,target=/root/.cache/pip  \
     pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 
 # Install additional pip packages
 RUN --mount=type=ssh  \
-    --mount=type=cache,target=/root/.cache/pip  \
+    --mount=type=cache,id=pip_cache_full,target=/root/.cache/pip  \
     pip install -e "libs/kotaemon[adv]" \
     && pip install unstructured[all-docs]
 
