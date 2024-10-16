@@ -37,16 +37,13 @@ RUN bash scripts/download_pdfjs.sh $PDFJS_PREBUILT_DIR
 COPY . /app
 COPY .env.example /app/.env
 
-# Install pip packages
-RUN --mount=type=ssh  \
-    --mount=type=cache,id=pip_cache_lite,target=/root/.cache/pip  \
-    pip install -e "libs/kotaemon" \
+# Install pip packages without cache mount
+RUN pip install -e "libs/kotaemon" \
     && pip install -e "libs/ktem" \
     && pip install "pdfservices-sdk@git+https://github.com/niallcm/pdfservices-python-sdk.git@bump-and-unfreeze-requirements"
 
-RUN --mount=type=ssh  \
-    --mount=type=cache,id=pip_cache_lite,target=/root/.cache/pip  \
-    if [ "$TARGETARCH" = "amd64" ]; then pip install graphrag future; fi
+# Install additional pip packages for amd64
+RUN if [ "$TARGETARCH" = "amd64" ]; then pip install graphrag future; fi
 
 # Clean up
 RUN apt-get autoremove \
@@ -70,15 +67,11 @@ RUN apt-get update -qqy && \
       ffmpeg \
       libmagic-dev
 
-# Install torch and torchvision for unstructured
-RUN --mount=type=ssh  \
-    --mount=type=cache,id=pip_cache_full,target=/root/.cache/pip  \
-    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+# Install torch and torchvision for unstructured without cache mount
+RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 
-# Install additional pip packages
-RUN --mount=type=ssh  \
-    --mount=type=cache,id=pip_cache_full,target=/root/.cache/pip  \
-    pip install -e "libs/kotaemon[adv]" \
+# Install additional pip packages without cache mount
+RUN pip install -e "libs/kotaemon[adv]" \
     && pip install unstructured[all-docs]
 
 # Clean up
