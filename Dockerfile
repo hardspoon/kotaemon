@@ -1,6 +1,8 @@
 # Lite version
 FROM python:3.10-slim AS lite
 
+Cache mounts MUST be in the format --mount=type=cache,id=<cache-id>
+
 # Common dependencies
 RUN apt-get update -qqy && \
     apt-get install -y --no-install-recommends \
